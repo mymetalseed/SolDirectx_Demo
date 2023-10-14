@@ -60,5 +60,7 @@ protected:
     void createDXGISwapChain(struct IDXGIFactory6* pDXGIFactory, struct ID3D12CommandQueue* present_queue);
     bool vsyncEnabled = false;
     uint32_t swapchainFlags;
+    //交换链
+    //用来呈现缓冲区内容的接口
     struct IDXGISwapChain3* pSwapChain = nullptr;
 };

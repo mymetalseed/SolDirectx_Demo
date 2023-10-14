@@ -2,6 +2,7 @@
 //
 
 #include "header/gfx/gfx_object.h"
+#include <iostream>
 
 class LittleRendererWindow final : public LittleGFXWindow
 {
