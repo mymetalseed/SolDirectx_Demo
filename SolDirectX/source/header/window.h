@@ -2,6 +2,8 @@
 #include "./configure.h"
 #include "../framework/object.h"
 #include <string>
+#include <d3d12.h>
+#include <wrl.h>
 
 class LittleWindow
 {
@@ -16,4 +18,5 @@ protected:
 	UINT32 height;
 	HWND hWnd;
 	HWND createWin32Window(const wchar_t* title);
+
 };

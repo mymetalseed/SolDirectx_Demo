@@ -3,14 +3,19 @@
 #include <dxgi1_6.h>
 #include <d3d12.h>
 #include <iostream>
+#include "../../header/d3dUtil.h"
 
 #define LOG_ADAPTER_OUTPUTS false    //是否打印配置器的显示参数列表
 #define LOG_DEVICE_FUNC_SUPPORT true //是否打印设备的功能支持
 
+#pragma comment(lib,"d3dcompiler.lib")
 // 链接到dxgi库
 #pragma comment(lib, "dxgi.lib")
 // 链接到d3d12
 #pragma comment(lib, "d3d12.lib")
+
+using Microsoft::WRL::ComPtr;
+
 
 bool LittleGFXInstance::Initialize(bool enableDebugLayer)
 {
@@ -192,59 +197,61 @@ bool LittleGFXDevice::Destroy()
     return true;
 }
 
+
+
+
+
+LittleGFXWindow* LittleGFXWindow::mWindow = nullptr;
+LittleGFXWindow* LittleGFXWindow::GetWindow() {
+    return mWindow;
+}
+
+LittleGFXWindow::LittleGFXWindow() {
+    mWindow = this;
+}
+
+LittleGFXWindow::~LittleGFXWindow() {
+    if (md3dDevice != nullptr) {
+        FlushCommandQueue();
+    }
+}
+
+bool LittleGFXWindow::Get4xMsaaState() const {
+    return m4xMsaaState;
+}
+
+void LittleGFXWindow::Set4xMsaaState(bool value) {
+    if (m4xMsaaState != value) {
+        m4xMsaaState = value;
+
+        //重構SwapChain
+        CreateSwapChain();
+        //OnResize();
+    }
+}
+
 bool LittleGFXWindow::Initialize(const wchar_t* title, LittleGFXDevice* device, bool enableVsync)
 {
     auto succeed = LittleWindow::Initialize(title);
-    createDXGISwapChain(device->adapter->instance->pDXGIFactory, device->pD3D12Queue);
+    
     return succeed;
+}
+
+bool LittleGFXWindow::InitDirect3D() {
+#if defined(DEBUG) || defined(_DEBUG)
+    //開啓Debug层,todo
+#endif
+    //IID_PPV_ARGS是用于寻找ComPtr的唯一Id的
+    ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&mdxgiFactory)));
+    
+
+
 }
 
 bool LittleGFXWindow::Destroy()
 {
     auto succeed = LittleWindow::Destroy();
-    SAFE_RELEASE(pSwapChain);
+    //SAFE_RELEASE(pSwapChain);
     return succeed;
 }
 
-void LittleGFXWindow::createDXGISwapChain(struct IDXGIFactory6* pDXGIFactory, struct ID3D12CommandQueue* present_queue)
-{
-    DXGI_SWAP_CHAIN_DESC1 chain_desc1 = { 0 };
-    chain_desc1.Width = width;
-    chain_desc1.Height = height;
-    // https://docs.microsoft.com/en-us/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_desc1
-    chain_desc1.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    chain_desc1.Stereo = false;
-    chain_desc1.SampleDesc.Count = 1; // If multisampling is needed, we'll resolve it later
-    chain_desc1.SampleDesc.Quality = 0;
-    chain_desc1.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    //缓冲区的个数
-    chain_desc1.BufferCount = vsyncEnabled ? 3 : 2;
-    chain_desc1.Scaling = DXGI_SCALING_STRETCH;
-    chain_desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // for better performance.
-    chain_desc1.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-    chain_desc1.Flags = 0;
-
-    BOOL allowTearing = FALSE;
-    chain_desc1.Flags |= allowTearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
-    swapchainFlags |= (!vsyncEnabled && allowTearing) ? DXGI_PRESENT_ALLOW_TEARING : 0;
-
-    IDXGISwapChain1* swapchain;
-
-    auto bCreated = SUCCEEDED(pDXGIFactory->CreateSwapChainForHwnd(present_queue,
-        hWnd, &chain_desc1, NULL, NULL, &swapchain));
-    assert(bCreated && "Failed to Try to Create SwapChain!");
-   
-    // 将Swapchain和窗口联系
-    auto bAssociation = SUCCEEDED(
-        pDXGIFactory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER));
-    assert(bAssociation && "Failed to Try to Associate SwapChain With Window!");
-    // 查询接口等级3的SwapChainInterface，我们要用到其中的特性
-    auto bQueryChain3 = SUCCEEDED(swapchain->QueryInterface(IID_PPV_ARGS(&pSwapChain)));
-    DXGI_RGBA bgColor{ 0.5,0.5,0.5,1 };
-
-    pSwapChain->SetBackgroundColor(&bgColor);
-
-    assert(bQueryChain3 && "Failed to Query IDXGISwapChain3 from Created SwapChain!");
-    // 记得释放查询过的旧接口
-    SAFE_RELEASE(swapchain);
-}
