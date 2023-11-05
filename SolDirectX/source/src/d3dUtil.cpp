@@ -1,4 +1,6 @@
 #include "../header/d3dUtil.h"
+#include <comdef.h>
+#include <fstream>
 
 using Microsoft::WRL::ComPtr;
 
@@ -9,6 +11,16 @@ DxException::DxException(HRESULT hr, const std::wstring& functionName, const std
     LineNumber(lineNumber)
 {
 }
+
+std::wstring DxException::ToString()const
+{
+    // Get the string description of the error code.
+    _com_error err(ErrorCode);
+    std::wstring msg = err.ErrorMessage();
+
+    return FunctionName + L" failed in " + Filename + L"; line " + std::to_wstring(LineNumber) + L"; error: " + msg;
+}
+
 
 ComPtr<ID3DBlob> d3dUtil::CompileShader(
     const std::wstring& filename,
@@ -72,7 +84,7 @@ Microsoft::WRL::ComPtr<ID3D12Resource> d3dUtil::CreateDefaultBuffer(
     // will copy the CPU memory into the intermediate upload heap.  Then, using ID3D12CommandList::CopySubresourceRegion,
     // the intermediate upload heap data will be copied to mBuffer.
     cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(defaultBuffer.Get(),
-        D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COMMON));
+        D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST));
     UpdateSubresources<1>(cmdList, defaultBuffer.Get(), uploadBuffer.Get(), 0, 0, 1, &subResourceData);
     cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(defaultBuffer.Get(),
         D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_GENERIC_READ));

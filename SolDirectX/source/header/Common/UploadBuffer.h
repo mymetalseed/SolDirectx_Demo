@@ -26,7 +26,7 @@ public:
 			IID_PPV_ARGS(&mUploadBuffer)
 		));
 
-		ThrowIfFailed(mUploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(mMappedData)));
+		ThrowIfFailed(mUploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&mMappedData)));
 	}
 
 	UploadBuffer(const UploadBuffer& rhs) = delete;

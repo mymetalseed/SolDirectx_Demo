@@ -193,7 +193,8 @@ void LittleRendererWindow::BuildPSO() {
 	//设置rootSignature
 	psoDesc.pRootSignature = mRootSignature.Get();
 	psoDesc.VS = {
-		reinterpret_cast<BYTE*>(mvsByteCode->GetBufferPointer())
+		reinterpret_cast<BYTE*>(mvsByteCode->GetBufferPointer()),
+		mvsByteCode->GetBufferSize()
 	};
 	psoDesc.PS = {
 		reinterpret_cast<BYTE*>(mpsByteCode->GetBufferPointer()),
