@@ -1,32 +1,9 @@
-﻿// SolDirectX.cpp: 定义应用程序的入口点。
+// SolDirectX.cpp: 定义应用程序的入口点。
 //
 
 #include "header/gfx/gfx_object.h"
 #include <iostream>
-
-class LittleRendererWindow final : public LittleGFXWindow
-{
-public:
-	void Run() override
-	{
-		MSG msg = { 0 };
-		while (msg.message != WM_QUIT) {
-			//处理系统消息
-			if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
-			//在空闲时进行我们自己的逻辑
-			else {
-				//暂时什么都不做
-				//Sleep 1~2ms,避免被while独占
-				Sleep(1);
-			}
-		}
-		//如果收到了WM_QUIT消息,直接退出函数
-		return;
-	}
-};
+#include "header/Window/LittleRendererWindow.h"
 
 int main()
 {

@@ -54,8 +54,10 @@ class LittleGFXWindow : public LittleWindow
     friend class LittleGFXInstance;
 
 public:
+    LittleGFXWindow();
+    ~LittleGFXWindow();
     static LittleGFXWindow* GetWindow();
-    bool Initialize(const wchar_t* title, LittleGFXDevice* device, bool enableVsync);
+    virtual bool Initialize(const wchar_t* title, LittleGFXDevice* device, bool enableVsync);
     bool Destroy();
     bool Get4xMsaaState()const;
     void Set4xMsaaState(bool value);
@@ -64,6 +66,7 @@ protected:
     bool vsyncEnabled = false;
     uint32_t swapchainFlags;
 
+    virtual void OnResize();
     virtual void Update(/*可以加入时间*/) = 0;
     virtual void Draw() = 0;
 
@@ -71,17 +74,14 @@ protected:
     virtual void OnMouseUp(WPARAM btnState, int x, int y) {}
     virtual void OnMouseMove(WPARAM btnState, int x, int y) {}
 protected:
-
+    void CreateRtvAndDsvDescriptorHeaps();
     bool InitDirect3D();
     void CreateCommandObjects();
     void CreateSwapChain();
 
     void FlushCommandQueue();
 
-    ID3D12Resource* CurrentBackBuffer() const
-    {
-        return mSwapChainBuffer[mCurrBackBuffer].Get();
-    }
+    ID3D12Resource* CurrentBackBuffer() const;
 
     D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView() const;
     D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView() const;
